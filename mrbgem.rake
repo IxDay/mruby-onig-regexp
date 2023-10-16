@@ -11,6 +11,9 @@ MRuby::Gem::Specification.new('mruby-onig-regexp') do |spec|
 
     require 'open3'
 
+    # Workaround for https://github.com/ziglang/zig/issues/4986
+    use_zig = build.cc.command.start_with?('zig ')
+
     # remove libonig, instead link directly against pthread
     unless ENV['OS'] == 'Windows_NT' || build.kind_of?(MRuby::CrossBuild)
       linker.libraries = ['pthread']
@@ -28,6 +31,7 @@ MRuby::Gem::Specification.new('mruby-onig-regexp') do |spec|
         oniguruma_lib = libfile "#{oniguruma_dir}/build_i686/libonigmo"
       end
     end
+    linker.flags << oniguruma_lib if use_zig
     header = "#{oniguruma_dir}/onigmo.h"
 
     task :clean do
