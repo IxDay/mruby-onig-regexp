@@ -1,12 +1,9 @@
-require 'pp'
-
 MRuby::Gem::Specification.new('mruby-onig-regexp') do |spec|
   spec.license = 'MIT'
   spec.authors = 'mattn'
   spec.add_dependency 'mruby-string-ext', core: 'mruby-string-ext'
 
   def spec.bundle_onigmo
-    puts "FOOOO #{@onigmo_bundled}"
     return if @onigmo_bundled
     @onigmo_bundled = true
 
@@ -73,7 +70,6 @@ MRuby::Gem::Specification.new('mruby-onig-regexp') do |spec|
           'CXX' => "#{build.cxx.command} #{build.cxx.flags.join(' ')}",
           'LD' => "#{build.linker.command} #{build.linker.flags.join(' ')}",
           'AR' => build.archiver.command }
-        pp e
         unless ENV['OS'] == 'Windows_NT'
           if build.kind_of? MRuby::CrossBuild
             host = "--host #{build.host_target ? build.host_target : build.name}"
@@ -121,7 +117,9 @@ MRuby::Gem::Specification.new('mruby-onig-regexp') do |spec|
     file "#{dir}/src/mruby_onig_regexp.c" => [:mruby_onig_regexp_with_compile_option, oniguruma_lib]
   end
 
-  if spec.respond_to? :search_package and spec.search_package 'onigmo'
+  if build.kind_of?(MRuby::CrossBuild)
+    spec.bundle_onigmo
+  elsif spec.respond_to? :search_package and spec.search_package 'onigmo'
     spec.cc.defines += ['HAVE_ONIGMO_H']
     spec.linker.libraries << 'onigmo'
   elsif spec.respond_to? :search_package and spec.search_package 'oniguruma'
