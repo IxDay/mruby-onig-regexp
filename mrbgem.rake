@@ -1,9 +1,12 @@
+require 'pp'
+
 MRuby::Gem::Specification.new('mruby-onig-regexp') do |spec|
   spec.license = 'MIT'
   spec.authors = 'mattn'
   spec.add_dependency 'mruby-string-ext', core: 'mruby-string-ext'
 
   def spec.bundle_onigmo
+    puts "FOOOO #{@onigmo_bundled}"
     return if @onigmo_bundled
     @onigmo_bundled = true
 
@@ -56,6 +59,12 @@ MRuby::Gem::Specification.new('mruby-onig-regexp') do |spec|
     libonig_objs_dir = "#{oniguruma_dir}/libonig_objs"
     libmruby_a = libfile("#{build.build_dir}/lib/libmruby")
     objext = visualcpp ? '.obj' : '.o'
+    e = {
+      'CC' => "#{build.cc.command} #{build.cc.flags.join(' ')}",
+      'CXX' => "#{build.cxx.command} #{build.cxx.flags.join(' ')}",
+      'LD' => "#{build.linker.command} #{build.linker.flags.join(' ')}",
+      'AR' => build.archiver.command }
+    pp e
 
     file oniguruma_lib => header do |t|
       Dir.chdir(oniguruma_dir) do
@@ -64,6 +73,7 @@ MRuby::Gem::Specification.new('mruby-onig-regexp') do |spec|
           'CXX' => "#{build.cxx.command} #{build.cxx.flags.join(' ')}",
           'LD' => "#{build.linker.command} #{build.linker.flags.join(' ')}",
           'AR' => build.archiver.command }
+        pp e
         unless ENV['OS'] == 'Windows_NT'
           if build.kind_of? MRuby::CrossBuild
             host = "--host #{build.host_target ? build.host_target : build.name}"
